@@ -11,27 +11,48 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField] private float fireRate = 8f; // bullets per second
     [SerializeField] private float bulletSpeed = 12f;
 
-    private float _nextFireTime = 0f;
+    StageManager stageManager;
 
-    public void DoUpdate()
+    float tRate;
+
+    public void Init(StageManager inStageManager)
     {
-        // Hold left mouse to keep firing
-        if (Input.GetMouseButton(0) && Time.time >= _nextFireTime)
+        stageManager = inStageManager;
+
+        ResetFireCooldown();
+    }
+
+    public void DoUpdate(float dt)
+    {
+        //// Hold left mouse to keep firing
+        //if (Input.GetMouseButton(0) && Time.time >= _nextFireTime)
+        //{
+        //    Fire();
+        //    _nextFireTime = Time.time + (1f / Mathf.Max(0.0001f, fireRate));
+        //}
+
+        if (Input.GetMouseButton(0))
         {
-            Fire();
-            _nextFireTime = Time.time + (1f / Mathf.Max(0.0001f, fireRate));
+            if (tRate <= 0f)
+            {
+                BulletScript bullet = bulletPool.Get();
+                bullet.transform.SetPositionAndRotation(bulletSpawnTransform.position, bulletSpawnTransform.rotation);
+
+                Vector2 dir = bulletSpawnTransform.right;
+                bullet.Init(dir * bulletSpeed);
+                bullet.gameObject.SetActive(true);
+
+                ResetFireCooldown();
+            }
+            else
+            {
+                tRate -= dt;
+            }
         }
     }
 
-    private void Fire()
+    void ResetFireCooldown()
     {
-        //shootFX.Play();
-        BulletScript bullet = bulletPool.Get();
-        bullet.transform.SetPositionAndRotation(bulletSpawnTransform.position, bulletSpawnTransform.rotation);
-
-        // Move along the spawn's "right" (good default for 2D sprites facing right)
-        Vector2 dir = bulletSpawnTransform.right;
-        bullet.Init(dir * bulletSpeed);
-        bullet.gameObject.SetActive(true);
+        tRate = 1f / fireRate;
     }
 }

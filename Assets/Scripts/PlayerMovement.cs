@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
         targetPosition = transform.position;
     }
 
-    public void DoUpdate()
+    public void DoUpdate(float dt)
     {
         if (Input.GetMouseButton(0))
         {
@@ -65,13 +65,7 @@ public class PlayerMovement : MonoBehaviour
             transform.position = ClampToScreen(newPos);
         }
 
-        HandleTilt();
-    }
-
-    private void HandleTilt()
-    {
-        if (!modelTransform) return;
-
+        //Handle Plane tilt
         float tiltTarget = 0f;
         if (isMoving)
         {
@@ -79,8 +73,13 @@ public class PlayerMovement : MonoBehaviour
             tiltTarget = Mathf.Clamp(horizontalInput, -1f, 1f) * -maxTiltZ;
         }
 
-        currentTilt = Mathf.Lerp(currentTilt, tiltTarget, Time.deltaTime * tiltSpeed);
+        currentTilt = Mathf.Lerp(currentTilt, tiltTarget, dt * tiltSpeed);
         modelTransform.localRotation = Quaternion.Euler(0f, 0f, currentTilt);
+    }
+
+    private void HandleTilt()
+    {
+        
     }
 
     private Vector3 ClampToScreen(Vector3 worldPos)

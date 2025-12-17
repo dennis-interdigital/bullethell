@@ -15,11 +15,13 @@ public class StageManager : MonoBehaviour
     {
         playerMovement.Init(this);
         roadCreator.Init(this);
+        playerShoot.Init(this);
     }
-    void Update()
+    void FixedUpdate()
     {
-        playerMovement.DoUpdate();
-        playerShoot.DoUpdate();
+        float dt = Time.deltaTime;
+        playerMovement.DoUpdate(dt);
+        playerShoot.DoUpdate(dt);
         roadCreator.DoUpdate();
     }
 }
