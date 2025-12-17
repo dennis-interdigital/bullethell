@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &363691385403118814
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 363691385403118812}
+  - component: {fileID: 363691385403118815}
+  m_Layer: 0
+  m_Name: world-creator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &363691385403118812
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 363691385403118814}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &363691385403118815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 363691385403118814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 779987aa8fd7cd8459c2b366f265754e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RoadPartPrefabs:
+  - {fileID: 6135008253007443742, guid: df33887b5064b624da1e27befe2cb28f, type: 3}
+  - {fileID: 6135008253007443742, guid: a8194bfefadd2a24283ed10ab60a485b, type: 3}
+  m_ObjectPackPrefabs:
+  - {fileID: 5443961205063495351, guid: 16306570a08599a4693c7d331a05a6d0, type: 3}
+  - {fileID: 8787371299602462839, guid: c2bc4dfc97790254084bc8ac3d0abbbc, type: 3}
+  - {fileID: 239334312381242284, guid: a013f797bb63a164e9b44bfee4f855ad, type: 3}
+  - {fileID: 239334312381242284, guid: d8e778f3d99a51046afcd45db15ff6dc, type: 3}
+  m_ItemPackPrefabs: []
+  m_LastPart: {fileID: 0}
+  m_LastObstacle: {fileID: 0}
+  m_Obstacles: []
+  ObstacleCounter: 0
+  ItemCounter: 0
