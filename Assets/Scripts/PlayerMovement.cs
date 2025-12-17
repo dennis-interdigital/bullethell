@@ -77,11 +77,6 @@ public class PlayerMovement : MonoBehaviour
         modelTransform.localRotation = Quaternion.Euler(0f, 0f, currentTilt);
     }
 
-    private void HandleTilt()
-    {
-        
-    }
-
     private Vector3 ClampToScreen(Vector3 worldPos)
     {
         float camHeight = mainCam.orthographicSize;
