@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,8 @@ public class PlayerHealthUI : MonoBehaviour
     public Image healthFill;                     // Image with fillAmount
     private Vector3 targetPos;
     private float targetFill = 1f;
+    private Vector3 punchScale = new Vector3(1f, 1f, 1f);
+    private Tween hitTween;
 
     private void OnEnable()
     {
@@ -31,11 +34,32 @@ public class PlayerHealthUI : MonoBehaviour
             healthFill.fillAmount = Mathf.Lerp(healthFill.fillAmount, targetFill, Time.deltaTime * 10f);
     }
 
-    /// <summary>
-    /// Sets the health bar fill (value between 0 and 1)
-    /// </summary>
+
     public void SetHealth(float normalizedHealth)
     {
         targetFill = Mathf.Clamp01(normalizedHealth);
+
+        // Kill previous animation
+        hitTween?.Kill();
+
+        hitTween = DOTween.Sequence()
+            .Append(
+                transform.DOPunchScale(
+                    punchScale,   // small punch
+                    0.15f,
+                    10,
+                    0.9f
+                )
+            )
+            .Append(
+                transform.DOShakePosition(
+                    0.2f,                // shake duration
+                    new Vector3(3f, 3f, 3f),
+                    10,
+                    10f,
+                    false,
+                    true                  // local shake
+                )
+            );
     }
 }
