@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 using UnityEngine.Events;
 namespace bullethell
 {
@@ -23,12 +24,31 @@ namespace bullethell
         [Header("Events")]
         public UnityEvent onDeath;
 
+        [Header("Hit Feedback")]
+        [SerializeField] private Vector3 hitPunchScale = new Vector3(0.12f, 0.12f, 0f);
+        [SerializeField] private float hitPunchDuration = 0.12f;
+        [Header("Hit Rotation Feedback")]
+        [SerializeField] private float hitRotateAngle = 8f; // degrees (small!)
+
+        private Tween hitTween;
+        private Vector3 originalScale;
+        private Quaternion originalRotation;
+
+
+
+
         public EnemyStats Stats => stats;
         public float MaxHealth => (stats ? stats.maxHealth : 1f) * Mathf.Max(0.1f, healthMultiplier);
         public float CurrentHealth => currentHealth;
         public bool IsDead => currentHealth <= 0f;
 
         private StageManager stageManager;
+
+        private void Awake()
+        {
+            originalScale = transform.localScale;
+            originalRotation = transform.localRotation;
+        }
 
         public void Init(StageManager stageManager)
         {
@@ -62,9 +82,12 @@ namespace bullethell
             currentHealth = Mathf.Clamp(currentHealth - amount, 0f, MaxHealth);
             UpdateUI();
 
+            PlayHitFeedback();
+
             if (IsDead)
                 HandleDeath();
         }
+
 
         public void Heal(float amount)
         {
@@ -116,5 +139,50 @@ namespace bullethell
             // Destroy enemy itself after short delay
             Destroy(gameObject);
         }
+
+        private void PlayHitFeedback()
+        {
+            hitTween?.Kill();
+
+            // Reset to original transform state
+            transform.localScale = originalScale;
+            transform.localRotation = originalRotation;
+
+            // Random small rotation direction
+            Vector3 randomRot = GetRandomHitRotation();
+
+            hitTween = DOTween.Sequence()
+                .Append(
+                    transform.DOPunchScale(
+                        hitPunchScale,
+                        hitPunchDuration,
+                        8,
+                        0.9f
+                    )
+                )
+                .Join(
+                    transform.DOPunchRotation(
+                        randomRot,
+                        hitPunchDuration,
+                        8,
+                        0.9f
+                    )
+                );
+        }
+
+
+        private Vector3 GetRandomHitRotation()
+        {
+            int dir = Random.Range(0, 4);
+
+            switch (dir)
+            {
+                case 0: return new Vector3(0f, 0f, hitRotateAngle);  // right
+                case 1: return new Vector3(0f, 0f, -hitRotateAngle);  // left
+                case 2: return new Vector3(hitRotateAngle, 0f, 0f); // up
+                default: return new Vector3(-hitRotateAngle, 0f, 0f); // down
+            }
+        }
+
     }
 }
