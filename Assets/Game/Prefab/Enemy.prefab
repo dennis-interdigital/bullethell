@@ -100,7 +100,7 @@ MonoBehaviour:
   entryDirection: 0
   enterOffsetFromEdge: 10
   enterSpeed: 10
-  enterThreshold: 0.05
+  enterThreshold: 1
   afterEnter: 1
   verticalSpeed: 2
   xCurve:

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-namespace Plane.Gameplay
+namespace bullethell
 {
     public class RoadCreator : MonoBehaviour
     {

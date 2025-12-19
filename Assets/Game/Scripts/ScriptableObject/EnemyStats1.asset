@@ -15,5 +15,5 @@ MonoBehaviour:
   enemyName: Enemy1
   maxHealth: 100
   contactDamage: 1
-  scoreReward: 100
+  scoreReward: 10
   goldReward: 0

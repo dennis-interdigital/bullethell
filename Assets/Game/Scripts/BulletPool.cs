@@ -1,45 +1,47 @@
 using System.Collections.Generic;
 using UnityEngine;
-
-public class BulletPool : MonoBehaviour
+namespace bullethell
 {
-    [SerializeField] private BulletScript bulletPrefab;
-    [SerializeField] private int initialSize = 20;
-
-    private readonly Queue<BulletScript> _pool = new Queue<BulletScript>();
-
-    void Awake()
+    public class BulletPool : MonoBehaviour
     {
-        Prewarm();
-    }
+        [SerializeField] private BulletScript bulletPrefab;
+        [SerializeField] private int initialSize = 20;
 
-    private void Prewarm()
-    {
-        for (int i = 0; i < initialSize; i++)
+        private readonly Queue<BulletScript> _pool = new Queue<BulletScript>();
+
+        void Awake()
         {
-            BulletScript b = Instantiate(bulletPrefab, transform);
-            b.SetPool(this);
-            b.gameObject.SetActive(false);
-            _pool.Enqueue(b);
+            Prewarm();
         }
-    }
 
-    public BulletScript Get()
-    {
-        if (_pool.Count == 0)
+        private void Prewarm()
         {
-            // Expand
-            BulletScript b = Instantiate(bulletPrefab, transform);
-            b.SetPool(this);
-            b.gameObject.SetActive(false);
-            return b;
+            for (int i = 0; i < initialSize; i++)
+            {
+                BulletScript b = Instantiate(bulletPrefab, transform);
+                b.SetPool(this);
+                b.gameObject.SetActive(false);
+                _pool.Enqueue(b);
+            }
         }
-        return _pool.Dequeue();
-    }
 
-    public void Return(BulletScript bullet)
-    {
-        bullet.gameObject.SetActive(false);
-        _pool.Enqueue(bullet);
+        public BulletScript Get()
+        {
+            if (_pool.Count == 0)
+            {
+                // Expand
+                BulletScript b = Instantiate(bulletPrefab, transform);
+                b.SetPool(this);
+                b.gameObject.SetActive(false);
+                return b;
+            }
+            return _pool.Dequeue();
+        }
+
+        public void Return(BulletScript bullet)
+        {
+            bullet.gameObject.SetActive(false);
+            _pool.Enqueue(bullet);
+        }
     }
 }

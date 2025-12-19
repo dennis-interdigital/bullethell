@@ -2,64 +2,90 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerHealthUI : MonoBehaviour
+namespace bullethell
 {
-    [Header("References")]
-    public Transform mainObject;                     // Player target
-    public Vector3 offset = new Vector3(0, 2f, 0); // Offset above player
-    public float followSmooth = 5f;              // Smooth follow speed
-
-    [Header("Health Bar")]
-    public Image healthFill;                     // Image with fillAmount
-    private Vector3 targetPos;
-    private float targetFill = 1f;
-    private Vector3 punchScale = new Vector3(1f, 1f, 1f);
-    private Tween hitTween;
-
-    private void OnEnable()
+    public class PlayerHealthUI : MonoBehaviour
     {
-        this.gameObject.transform.position = targetPos;
-    }
+        [Header("References")]
+        public Transform mainObject;
+        public Vector3 offset = new Vector3(0, 2f, 0);
+        public float followSmooth = 5f;
 
-    void LateUpdate()
-    {
-        if (!mainObject) return;
+        [Header("Health Bar")]
+        public Image healthFill;
 
-        // Smoothly follow player position
-        targetPos = mainObject.position + offset;
-        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * followSmooth);
+        [Header("Hit Animation")]
+        public Vector3 punchScale = new Vector3(0.12f, 0.12f, 0f);
+        public float punchDuration = 0.15f;
 
-        // Smoothly update fill
-        if (healthFill)
-            healthFill.fillAmount = Mathf.Lerp(healthFill.fillAmount, targetFill, Time.deltaTime * 10f);
-    }
+        public float shakeDuration = 0.15f;
+        public Vector3 shakeStrength = new Vector3(0.08f, 0.08f, 0f);
+        public int shakeVibrato = 10;
 
+        private Vector3 targetPos;
+        private float targetFill = 1f;
+        private Tween hitTween;
 
-    public void SetHealth(float normalizedHealth)
-    {
-        targetFill = Mathf.Clamp01(normalizedHealth);
+        private void OnEnable()
+        {
+            if (mainObject)
+            {
+                targetPos = mainObject.position + offset;
+                transform.position = targetPos;
+            }
+        }
 
-        // Kill previous animation
-        hitTween?.Kill();
+        void LateUpdate()
+        {
+            if (!mainObject) return;
 
-        hitTween = DOTween.Sequence()
-            .Append(
-                transform.DOPunchScale(
-                    punchScale,   // small punch
-                    0.15f,
-                    10,
-                    0.9f
-                )
-            )
-            .Append(
-                transform.DOShakePosition(
-                    0.2f,                // shake duration
-                    new Vector3(3f, 3f, 3f),
-                    10,
-                    10f,
-                    false,
-                    true                  // local shake
-                )
+            // Follow player
+            targetPos = mainObject.position + offset;
+            transform.position = Vector3.Lerp(
+                transform.position,
+                targetPos,
+                Time.deltaTime * followSmooth
             );
+
+            // Smooth health fill
+            if (healthFill)
+            {
+                healthFill.fillAmount = Mathf.Lerp(
+                    healthFill.fillAmount,
+                    targetFill,
+                    Time.deltaTime * 10f
+                );
+            }
+        }
+
+        public void SetHealth(float normalizedHealth)
+        {
+            targetFill = Mathf.Clamp01(normalizedHealth);
+
+            hitTween?.Kill();
+
+            transform.localScale = Vector3.one;
+
+            hitTween = DOTween.Sequence()
+                .Append(
+                    transform.DOPunchScale(
+                        new Vector3(0.12f, 0.12f, 0f),
+                        0.15f,
+                        8,
+                        0.9f
+                    )
+                )
+                .Append(
+                    transform.DOShakePosition(
+                        0.15f,
+                        new Vector3(0.08f, 0.08f, 0f),
+                        10,
+                        0.9f,
+                        false,
+                        true
+                    )
+                );
+        }
+
     }
 }

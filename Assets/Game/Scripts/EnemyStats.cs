@@ -13,7 +13,7 @@ public class EnemyStats : ScriptableObject
     public float contactDamage = 10f;
 
     [Header("Rewards (optional)")]
-    public int scoreReward = 100;
-    public int goldReward = 0;
+    public float scoreReward = 10;
+    public int goldReward = 50;
 
 }

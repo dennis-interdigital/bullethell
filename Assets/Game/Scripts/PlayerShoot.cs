@@ -1,58 +1,60 @@
 using UnityEngine;
-
-public class PlayerShoot : MonoBehaviour
+namespace bullethell
 {
-    [Header("Refs")]
-    [SerializeField] private BulletPool bulletPool;
-    [SerializeField] private Transform bulletSpawnTransform; // attach a child transform here
-    [SerializeField] private ParticleSystem shootFX;
-
-    [Header("Firing")]
-    [SerializeField] private float fireRate = 8f; // bullets per second
-    [SerializeField] private float bulletSpeed = 12f;
-
-    StageManager stageManager;
-
-    float tRate;
-
-    public bool isInit = false;
-
-    public void Init(StageManager inStageManager)
+    public class PlayerShoot : MonoBehaviour
     {
-        stageManager = inStageManager;
-        
-        ResetFireCooldown();
+        [Header("Refs")]
+        [SerializeField] private BulletPool bulletPool;
+        [SerializeField] private Transform bulletSpawnTransform; // attach a child transform here
+        [SerializeField] private ParticleSystem shootFX;
 
-        isInit = true;
-    }
+        [Header("Firing")]
+        [SerializeField] private float fireRate = 8f; // bullets per second
+        [SerializeField] private float bulletSpeed = 12f;
 
-    public void DoUpdate(float dt)
-    {
-        if (isInit)
+        StageManager stageManager;
+
+        float tRate;
+
+        public bool isInit = false;
+
+        public void Init(StageManager inStageManager)
         {
-            if (Input.GetMouseButton(0))
+            stageManager = inStageManager;
+
+            ResetFireCooldown();
+
+            isInit = true;
+        }
+
+        public void DoUpdate(float dt)
+        {
+            if (isInit)
             {
-                if (tRate <= 0f)
+                if (Input.GetMouseButton(0))
                 {
-                    BulletScript bullet = bulletPool.Get();
-                    bullet.transform.SetPositionAndRotation(bulletSpawnTransform.position, bulletSpawnTransform.rotation);
+                    if (tRate <= 0f)
+                    {
+                        BulletScript bullet = bulletPool.Get();
+                        bullet.transform.SetPositionAndRotation(bulletSpawnTransform.position, bulletSpawnTransform.rotation);
 
-                    Vector2 dir = bulletSpawnTransform.right;
-                    bullet.Init(dir * bulletSpeed);
-                    bullet.gameObject.SetActive(true);
+                        Vector2 dir = bulletSpawnTransform.right;
+                        bullet.Init(dir * bulletSpeed);
+                        bullet.gameObject.SetActive(true);
 
-                    ResetFireCooldown();
-                }
-                else
-                {
-                    tRate -= dt;
+                        ResetFireCooldown();
+                    }
+                    else
+                    {
+                        tRate -= dt;
+                    }
                 }
             }
         }
-    }
 
-    void ResetFireCooldown()
-    {
-        tRate = 1f / fireRate;
+        void ResetFireCooldown()
+        {
+            tRate = 1f / fireRate;
+        }
     }
 }

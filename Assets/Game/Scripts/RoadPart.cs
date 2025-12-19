@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace Plane.Gameplay
+namespace bullethell
 {
     public class RoadPart : MonoBehaviour
     {

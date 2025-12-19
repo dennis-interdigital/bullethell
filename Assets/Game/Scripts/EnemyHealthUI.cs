@@ -1,41 +1,86 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EnemyHealthUI : MonoBehaviour
+namespace bullethell
 {
-    [Header("References")]
-    public Transform target;                         // Enemy transform to follow
-    public Vector3 offset = new Vector3(0f, 2f, 0f); // Offset above enemy
-    public float followSmooth = 5f;                  // Follow smoothing
-
-    [Header("Bar")]
-    public Image healthFill;                         // Image with 'Filled' type
-    public float fillSmooth = 10f;                   // Fill smoothing
-
-    private Vector3 _targetPos;
-    private float _targetFill = 1f;
-
-    private void OnEnable()
+    [RequireComponent(typeof(CanvasGroup))]
+    public class EnemyHealthUI : MonoBehaviour
     {
-        this.gameObject.transform.position = _targetPos;
-    }
+        [Header("References")]
+        public Transform target;
+        public Vector3 offset = new Vector3(0f, 2f, 0f);
+        public float followSmooth = 5f;
 
-    void LateUpdate()
-    {
-        if (!target) return;
+        [Header("Bar")]
+        public Image healthFill;
+        public float fillSmooth = 10f;
 
-        // Smoothly follow the enemy
-        _targetPos = target.position + offset;
-        transform.position = Vector3.Lerp(transform.position, _targetPos, Time.deltaTime * followSmooth);
+        [Header("Appear Settings")]
+        public float appearDistance = 0.2f; // how close before showing
 
-        // Smoothly update fill
-        if (healthFill)
-            healthFill.fillAmount = Mathf.Lerp(healthFill.fillAmount, _targetFill, Time.deltaTime * fillSmooth);
-    }
+        private Vector3 targetPos;
+        private float targetFill = 1f;
 
-    /// <summary>Set health [0..1]</summary>
-    public void SetHealth(float normalized)
-    {
-        _targetFill = Mathf.Clamp01(normalized);
+        private CanvasGroup canvasGroup;
+        private bool isVisible;
+
+        private void Awake()
+        {
+            canvasGroup = GetComponent<CanvasGroup>();
+        }
+
+        private void OnEnable()
+        {
+            isVisible = false;
+            canvasGroup.alpha = 0f;
+
+            if (target)
+            {
+                // SNAP to target immediately (no lerp yet)
+                targetPos = target.position + offset;
+                transform.position = targetPos;
+            }
+        }
+
+        void LateUpdate()
+        {
+            if (!target) return;
+
+            targetPos = target.position + offset;
+
+            // Follow
+            transform.position = Vector3.Lerp(
+                transform.position,
+                targetPos,
+                Time.deltaTime * followSmooth
+            );
+
+            // Appear only when close enough (prevents screen jump)
+            if (!isVisible)
+            {
+                float dist = Vector3.Distance(transform.position, targetPos);
+                if (dist <= appearDistance)
+                {
+                    isVisible = true;
+                    canvasGroup.alpha = 1f;
+                }
+            }
+
+            // Smooth fill
+            if (healthFill)
+            {
+                healthFill.fillAmount = Mathf.Lerp(
+                    healthFill.fillAmount,
+                    targetFill,
+                    Time.deltaTime * fillSmooth
+                );
+            }
+        }
+
+        /// <summary>Set health [0..1]</summary>
+        public void SetHealth(float normalized)
+        {
+            targetFill = Mathf.Clamp01(normalized);
+        }
     }
 }

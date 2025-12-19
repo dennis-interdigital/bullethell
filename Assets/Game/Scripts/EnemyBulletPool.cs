@@ -1,43 +1,45 @@
 using System.Collections.Generic;
 using UnityEngine;
-
-public class EnemyBulletPool : MonoBehaviour
+namespace bullethell
 {
-    [SerializeField] private EnemyBulletScript bulletPrefab;
-    [SerializeField] private int initialSize = 20;
-
-    private readonly Queue<EnemyBulletScript> _pool = new();
-
-
-    public void Init()
+    public class EnemyBulletPool : MonoBehaviour
     {
-        for (int i = 0; i < initialSize; i++)
+        [SerializeField] private EnemyBulletScript bulletPrefab;
+        [SerializeField] private int initialSize = 20;
+
+        private readonly Queue<EnemyBulletScript> _pool = new();
+
+
+        public void Init()
         {
-            var b = Instantiate(bulletPrefab, transform);
-            b.SetPool(this);
+            for (int i = 0; i < initialSize; i++)
+            {
+                var b = Instantiate(bulletPrefab, transform);
+                b.SetPool(this);
+                b.gameObject.SetActive(false);
+                _pool.Enqueue(b);
+            }
+        }
+
+
+        public EnemyBulletScript Get()
+        {
+            if (_pool.Count == 0)
+            {
+                var b = Instantiate(bulletPrefab, transform);
+                b.SetPool(this);
+                b.gameObject.SetActive(false);
+                return b;
+            }
+            return _pool.Dequeue();
+        }
+
+        public void Return(EnemyBulletScript b)
+        {
+            if (!b) return;
             b.gameObject.SetActive(false);
+            b.transform.SetParent(transform);
             _pool.Enqueue(b);
         }
-    }
-
-
-    public EnemyBulletScript Get()
-    {
-        if (_pool.Count == 0)
-        {
-            var b = Instantiate(bulletPrefab, transform);
-            b.SetPool(this);
-            b.gameObject.SetActive(false);
-            return b;
-        }
-        return _pool.Dequeue();
-    }
-
-    public void Return(EnemyBulletScript b)
-    {
-        if (!b) return;
-        b.gameObject.SetActive(false);
-        b.transform.SetParent(transform);
-        _pool.Enqueue(b);
     }
 }
