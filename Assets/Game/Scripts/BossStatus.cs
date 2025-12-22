@@ -22,7 +22,7 @@ namespace bullethell
         private EnemyHealthUI healthUI;
 
         [Header("VFX Settings")]
-        [SerializeField] private string deathVFXKey = "explosion";
+        [SerializeField] private string deathVFXKey = "bossExplosion";
 
         [Header("Events")]
         public UnityEvent onDeath;

@@ -61,7 +61,6 @@ namespace bullethell
             deathTime = Time.time + lifetime;
         }
 
-        // ─────────────────────────────
         void Update()
         {
             transform.position += direction * bulletSpeed * Time.deltaTime;
@@ -71,10 +70,6 @@ namespace bullethell
                 Return();
             }
         }
-
-        // ─────────────────────────────
-        // DAMAGE
-        // ─────────────────────────────
         public float GetDamage()
         {
             return Mathf.Max(0f, (baseDamage + flatBonus) * damageMultiplier);
@@ -106,9 +101,6 @@ namespace bullethell
             damageMultiplier = 1f;
         }
 
-        // ─────────────────────────────
-        // COLLISION
-        // ─────────────────────────────
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player"))
@@ -127,10 +119,7 @@ namespace bullethell
 
             Return();
         }
-
-        // ─────────────────────────────
-        // RETURN
-        // ─────────────────────────────
+        
         public void Return()
         {
             if (!pool) return;

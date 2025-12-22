@@ -72,7 +72,7 @@ MonoBehaviour:
     type: 3}
   healthUITargetTransform: {fileID: 944304736502219593}
   worldCanvas: {fileID: 0}
-  deathVFXKey: explosion
+  deathVFXKey: bossExplosion
   onDeath:
     m_PersistentCalls:
       m_Calls: []
@@ -113,7 +113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entryDirection: 0
-  enterOffsetFromEdge: 5
+  enterOffsetFromEdge: 10
   enterSpeed: 10
   enterThreshold: 0
   afterEnter: 1
