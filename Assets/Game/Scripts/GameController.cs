@@ -36,7 +36,19 @@ namespace bullethell
             currBossTriggerValue += value;
             var gameUI = uiManager.currentActiveUI as GameMenuUI;
             gameUI.UpdateBossTriggerUI(currBossTriggerValue, bossTriggerValue);
+            if(currBossTriggerValue >= bossTriggerValue)
+            {
+                ResetBossTrigger();
+                stageManager.enemySpawner.SpawnBoss();
+            }
             //update UI Value on GameMenuUI
+        }
+
+        public void ResetBossTrigger()
+        {
+            currBossTriggerValue = 0;
+            var gameUI = uiManager.currentActiveUI as GameMenuUI;
+            gameUI.UpdateBossTriggerUI(currBossTriggerValue, bossTriggerValue);
         }
     }
 }

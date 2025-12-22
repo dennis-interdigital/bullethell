@@ -1,30 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+
 namespace bullethell
 {
     public class EnemySpawner : MonoBehaviour
     {
-        public enum SpawnSide
-        {
-            Top,
-            Left,
-            Right
-        }
-
-        [Header("Spawn")]
-        public GameObject enemyPrefab;
+        [Header("Enemy Spawn")]
+        public List<GameObject> enemyPrefabs;
         public Transform enemyParent;
         public float spawnInterval = 1.5f;
         public float spawnOutsideOffset = 1.5f;
 
-        [Header("Limit")]
-        public int maxEnemiesOnScreen = 10;     // 🔑 NEW
-        int currentEnemyCount = 0;
+        [Header("Top Spawn Padding")]
+        [Tooltip("Horizontal padding so enemies don't spawn on screen edge")]
+        [SerializeField] private float topSpawnHorizontalPadding = 1.2f;
 
-        [Header("Spawn Sides")]
-        public bool spawnTop = true;
-        public bool spawnLeft = true;
-        public bool spawnRight = true;
+        [Header("Boss Spawn")]
+        public GameObject bossPrefab;
+        public Transform bossSpawnPoint;
+
+        [Header("Limit")]
+        public int maxEnemiesOnScreen = 10;
+        private int currentEnemyCount;
 
         [Header("Random Shoot Patterns")]
         public bool allowDownward = true;
@@ -33,113 +30,168 @@ namespace bullethell
         public bool allowSpiral = true;
         public bool allowFan = true;
 
-        Camera mainCam;
-        float timer;
+        private Camera mainCam;
+        private float timer;
+        private bool isInit;
+        private bool isSpawningEnemies = true;
+        private bool bossAlive;
+
         public StageManager stageManager;
 
-        Vector2 enemyHalfSize;
-        public bool isInit = false;
-
+        // ─────────────────────────────
         public void Init(StageManager stageManager)
         {
-            mainCam = Camera.main;
             this.stageManager = stageManager;
-            CacheEnemyHalfSize();
+            mainCam = Camera.main;
             isInit = true;
         }
 
         public void DoUpdate(float dt)
         {
-            if (isInit)
-            {
-                if (currentEnemyCount >= maxEnemiesOnScreen)
-                    return;
+            if (!isInit || !isSpawningEnemies || bossAlive)
+                return;
 
-                timer += dt;
-                if (timer >= spawnInterval)
-                {
-                    SpawnEnemy();
-                    timer = 0f;
-                }
+            if (currentEnemyCount >= maxEnemiesOnScreen)
+                return;
+
+            timer += dt;
+            if (timer >= spawnInterval)
+            {
+                SpawnEnemy();
+                timer = 0f;
             }
         }
 
         // ─────────────────────────────
-        void CacheEnemyHalfSize()
-        {
-            enemyHalfSize = Vector2.zero;
-
-            if (!enemyPrefab) return;
-
-            Renderer r = enemyPrefab.GetComponentInChildren<Renderer>();
-            if (!r) return;
-
-            Bounds b = r.bounds;
-            enemyHalfSize = new Vector2(b.extents.x, b.extents.y);
-        }
+        #region ENEMY SPAWN (TOP ONLY)
 
         void SpawnEnemy()
         {
-            if (currentEnemyCount >= maxEnemiesOnScreen)
+            if (enemyPrefabs == null || enemyPrefabs.Count == 0)
                 return;
 
-            SpawnSide side = GetRandomSide();
-            Vector3 spawnLocation = GetSpawnPosition(side);
+            GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
 
-            Vector3 spawnPos = new Vector3(
-                spawnLocation.x,
-                spawnLocation.y,
-                enemyParent.position.z
-            );
+            Vector3 worldPos = GetTopSpawnPosition();
+            worldPos.z = 0f;
 
-            GameObject enemy = Instantiate(
-                enemyPrefab,
-                spawnPos,
-                Quaternion.identity,
-                enemyParent
-            );
+            GameObject enemy = Instantiate(prefab, worldPos, Quaternion.identity);
 
-            currentEnemyCount++; // 🔑 increment on spawn
+            // Parent AFTER instantiation
+            if (enemyParent)
+                enemy.transform.SetParent(enemyParent, true);
 
-            EnemyStatus enemyStatus = enemy.GetComponent<EnemyStatus>();
-            if (enemyStatus)
+            // HARD LOCK Z
+            ForceZZero(enemy.transform);
+
+            currentEnemyCount++;
+
+            EnemyStatus status = enemy.GetComponent<EnemyStatus>();
+            if (status)
             {
-                enemyStatus.Init(stageManager);
-
-                // 🔑 subscribe to death event
-                enemyStatus.onDeath.AddListener(OnEnemyDeath);
-            }
-
-            EnemyBulletPool bulletPool = stageManager.enemyBulletPool;
-            EnemyShoot enemyShoot = enemy.GetComponent<EnemyShoot>();
-            enemyShoot.Init(bulletPool);
-
-            EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
-            if (movement)
-            {
-                movement.entryDirection = side switch
-                {
-                    SpawnSide.Top => EnemyMovement.EntryDirection.FromTop,
-                    SpawnSide.Left => EnemyMovement.EntryDirection.FromLeft,
-                    SpawnSide.Right => EnemyMovement.EntryDirection.FromRight,
-                    _ => EnemyMovement.EntryDirection.FromTop
-                };
+                status.Init(stageManager);
+                status.onDeath.AddListener(OnEnemyDeath);
             }
 
             EnemyShoot shoot = enemy.GetComponent<EnemyShoot>();
             if (shoot)
             {
+                shoot.Init(stageManager);
                 shoot.pattern = GetRandomShootPattern();
+            }
+
+            EnemyMovement movement = enemy.GetComponent<EnemyMovement>();
+            if (movement)
+            {
+                movement.entryDirection = EnemyMovement.EntryDirection.FromTop;
             }
         }
 
-        // 🔑 CALLED WHEN ENEMY DIES
         void OnEnemyDeath()
         {
             currentEnemyCount = Mathf.Max(0, currentEnemyCount - 1);
         }
 
+        #endregion
+
         // ─────────────────────────────
+        #region BOSS LOGIC
+
+        public void SpawnBoss()
+        {
+            if (bossAlive || bossPrefab == null)
+                return;
+
+            bossAlive = true;
+            isSpawningEnemies = false;
+
+            Vector3 worldPos = bossSpawnPoint
+                ? bossSpawnPoint.position
+                : Vector3.zero;
+
+            worldPos.z = 0f;
+
+            GameObject boss = Instantiate(bossPrefab, worldPos, Quaternion.identity);
+
+            if (enemyParent)
+                boss.transform.SetParent(enemyParent, true);
+
+            // HARD LOCK Z
+            ForceZZero(boss.transform);
+
+            BossStatus bossStatus = boss.GetComponent<BossStatus>();
+            if (bossStatus)
+            {
+                bossStatus.Init(stageManager);
+                bossStatus.onDeath.AddListener(OnBossDeath);
+            }
+
+            BossShoot shoot = boss.GetComponent<BossShoot>();
+            if (shoot)
+            {
+                shoot.Init(stageManager);
+            }
+        }
+
+        void OnBossDeath()
+        {
+            bossAlive = false;
+            isSpawningEnemies = true;
+            timer = 0f;
+        }
+
+        #endregion
+
+        // ─────────────────────────────
+        #region HELPERS
+
+        Vector3 GetTopSpawnPosition()
+        {
+            float camH = mainCam.orthographicSize;
+            float camW = camH * mainCam.aspect;
+            Vector3 camPos = mainCam.transform.position;
+
+            float minX = camPos.x - camW + topSpawnHorizontalPadding;
+            float maxX = camPos.x + camW - topSpawnHorizontalPadding;
+
+            return new Vector3(
+                Random.Range(minX, maxX),
+                camPos.y + camH + spawnOutsideOffset,
+                0f
+            );
+        }
+
+        void ForceZZero(Transform t)
+        {
+            Vector3 wp = t.position;
+            wp.z = 0f;
+            t.position = wp;
+
+            Vector3 lp = t.localPosition;
+            lp.z = 0f;
+            t.localPosition = lp;
+        }
+
         EnemyShoot.BulletPattern GetRandomShootPattern()
         {
             List<EnemyShoot.BulletPattern> patterns = new();
@@ -153,55 +205,6 @@ namespace bullethell
             return patterns[Random.Range(0, patterns.Count)];
         }
 
-        // ─────────────────────────────
-        Vector3 GetSpawnPosition(SpawnSide side)
-        {
-            float camCenterY = mainCam.transform.position.y;
-            float camTop = camCenterY + mainCam.orthographicSize;
-            float camRight = mainCam.transform.position.x + mainCam.orthographicSize * mainCam.aspect;
-            float camLeft = mainCam.transform.position.x - mainCam.orthographicSize * mainCam.aspect;
-
-            float spawnMinY = camCenterY;
-            float spawnMaxY = camTop;
-
-            float minX = camLeft + enemyHalfSize.x;
-            float maxX = camRight - enemyHalfSize.x;
-
-            float minY = spawnMinY + enemyHalfSize.y;
-            float maxY = spawnMaxY - enemyHalfSize.y;
-
-            return side switch
-            {
-                SpawnSide.Top => new Vector3(
-                    Random.Range(minX, maxX),
-                    camTop + spawnOutsideOffset + enemyHalfSize.y,
-                    0f
-                ),
-
-                SpawnSide.Left => new Vector3(
-                    camLeft - spawnOutsideOffset - enemyHalfSize.x,
-                    Random.Range(minY, maxY),
-                    0f
-                ),
-
-                SpawnSide.Right => new Vector3(
-                    camRight + spawnOutsideOffset + enemyHalfSize.x,
-                    Random.Range(minY, maxY),
-                    0f
-                ),
-
-                _ => Vector3.zero
-            };
-        }
-
-        SpawnSide GetRandomSide()
-        {
-            List<SpawnSide> sides = new();
-            if (spawnTop) sides.Add(SpawnSide.Top);
-            if (spawnLeft) sides.Add(SpawnSide.Left);
-            if (spawnRight) sides.Add(SpawnSide.Right);
-
-            return sides[Random.Range(0, sides.Count)];
-        }
+        #endregion
     }
 }

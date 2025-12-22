@@ -1,8 +1,15 @@
 ﻿using UnityEngine;
+
 namespace bullethell
 {
     public class EnemyBulletScript : MonoBehaviour
     {
+        public enum BulletOwner
+        {
+            Enemy,
+            Boss
+        }
+
         [Header("Bullet Settings")]
         [SerializeField] private float bulletSpeed = 10f;
         [SerializeField] private float lifetime = 2f;
@@ -16,62 +23,122 @@ namespace bullethell
         [Header("VFX")]
         [SerializeField] private string hitVFXKey = "enemyBulletHit";
 
-        private EnemyBulletPool _pool;
-        private Vector3 _direction = Vector3.down; // Default downward along Y axis
-        private float _deathTime;
+        [Header("Owner")]
+        [SerializeField] private BulletOwner owner = BulletOwner.Enemy;
 
-        public void SetPool(EnemyBulletPool pool) => _pool = pool;
+        private EnemyBulletPool pool;
+        private Vector3 direction = Vector3.down;
+        private float deathTime;
 
-        public float GetDamage() => Mathf.Max(0f, (baseDamage + flatBonus) * damageMultiplier);
-
-        public void SetBaseDamage(float value) => baseDamage = Mathf.Max(0f, value);
-        public void AddFlatBonus(float amount) => flatBonus += amount;
-        public void SetDamageMultiplier(float multiplier) => damageMultiplier = Mathf.Max(0f, multiplier);
-        public void MultiplyDamage(float factor) => damageMultiplier = Mathf.Max(0f, damageMultiplier * factor);
-        public void ResetDamageModifiers() { flatBonus = 0f; damageMultiplier = 1f; }
-
-        public void Init(Vector3 direction, float? customSpeed = null)
+        // ─────────────────────────────
+        // POOL
+        // ─────────────────────────────
+        public void SetPool(EnemyBulletPool pool)
         {
-            // ensure it goes downward along Y axis
-            _direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.down;
-            if (customSpeed.HasValue) bulletSpeed = customSpeed.Value;
+            this.pool = pool;
+        }
+
+        // ─────────────────────────────
+        // INIT
+        // ─────────────────────────────
+        public void Init(
+            Vector3 dir,
+            float? customSpeed,
+            BulletOwner owner)
+        {
+            this.owner = owner;
+
+            direction = dir.sqrMagnitude > 0.0001f
+                ? dir.normalized
+                : Vector3.down;
+
+            if (customSpeed.HasValue)
+                bulletSpeed = customSpeed.Value;
 
             if (alignRotationToDirection)
-                transform.rotation = Quaternion.LookRotation(Vector3.forward, _direction);
+                transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
 
-            _deathTime = Time.time + lifetime;
+            deathTime = Time.time + lifetime;
         }
 
-        private void OnEnable()
+        // ─────────────────────────────
+        void Update()
         {
-            _deathTime = Time.time + lifetime;
+            transform.position += direction * bulletSpeed * Time.deltaTime;
+
+            if (Time.time >= deathTime)
+            {
+                Return();
+            }
         }
 
-        private void Update()
+        // ─────────────────────────────
+        // DAMAGE
+        // ─────────────────────────────
+        public float GetDamage()
         {
-            // Move downward (Y axis)
-            transform.position += _direction * bulletSpeed * Time.deltaTime;
-
-            if (Time.time >= _deathTime)
-                _pool.Return(this);
+            return Mathf.Max(0f, (baseDamage + flatBonus) * damageMultiplier);
         }
 
+        public void SetBaseDamage(float value)
+        {
+            baseDamage = Mathf.Max(0f, value);
+        }
+
+        public void AddFlatBonus(float amount)
+        {
+            flatBonus += amount;
+        }
+
+        public void SetDamageMultiplier(float multiplier)
+        {
+            damageMultiplier = Mathf.Max(0f, multiplier);
+        }
+
+        public void MultiplyDamage(float factor)
+        {
+            damageMultiplier = Mathf.Max(0f, damageMultiplier * factor);
+        }
+
+        public void ResetDamageModifiers()
+        {
+            flatBonus = 0f;
+            damageMultiplier = 1f;
+        }
+
+        // ─────────────────────────────
+        // COLLISION
+        // ─────────────────────────────
         private void OnTriggerEnter(Collider other)
         {
-            if (other.tag.Equals("Player"))
+            if (!other.CompareTag("Player"))
+                return;
+
+            PlayerStatus player = other.GetComponentInParent<PlayerStatus>();
+            if (player != null)
             {
-                var player = other.GetComponentInParent<PlayerStatus>();
-                if (player != null)
-                {
-                    player.TakeDamage(GetDamage());
-                }
-
-                if (VFXPool.Instance != null && !string.IsNullOrEmpty(hitVFXKey))
-                    VFXPool.Instance.Spawn(hitVFXKey, transform.position);
-
-                _pool.Return(this);
+                player.TakeDamage(GetDamage());
             }
 
+            if (VFXPool.Instance != null && !string.IsNullOrEmpty(hitVFXKey))
+            {
+                VFXPool.Instance.Spawn(hitVFXKey, transform.position);
+            }
+
+            Return();
+        }
+
+        // ─────────────────────────────
+        // RETURN
+        // ─────────────────────────────
+        public void Return()
+        {
+            if (!pool) return;
+
+            if (owner == BulletOwner.Boss)
+                pool.ReturnBossBullet(this);
+            else
+                pool.ReturnEnemyBullet(this);
         }
     }
 }

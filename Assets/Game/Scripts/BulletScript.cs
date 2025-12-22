@@ -95,6 +95,21 @@ namespace bullethell
 
                 _pool.Return(this);
             }
+
+            else if (other.tag.Equals("Boss"))
+            {
+                var boss = other.GetComponentInParent<BossStatus>();
+                if (boss != null)
+                {
+                    boss.TakeDamage(GetDamage());
+                }
+
+                // VFX + return to pool
+                if (VFXPool.Instance != null)
+                    VFXPool.Instance.Spawn("bulletHit", transform.position);
+
+                _pool.Return(this);
+            }
         }
     }
 }

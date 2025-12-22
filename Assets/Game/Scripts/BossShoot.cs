@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
+
 namespace bullethell
 {
-    public class EnemyShoot : MonoBehaviour
+    public class BossShoot : MonoBehaviour
     {
         public enum BulletPattern
         {
@@ -13,29 +14,29 @@ namespace bullethell
         }
 
         [Header("Refs")]
-        [SerializeField] EnemyBulletPool bulletPool;
-        [SerializeField] Transform bulletSpawn;
-        [SerializeField] Transform playerTarget;
+        [SerializeField] private EnemyBulletPool bulletPool;
+        [SerializeField] private Transform bulletSpawn;
+        [SerializeField] private Transform playerTarget;
 
         [Header("Pattern")]
         public BulletPattern pattern = BulletPattern.Ring;
 
         [Header("Firing")]
-        public float fireRate = 1.5f;
-        public float bulletSpeed = 6f;
+        public float fireRate = 3f;           // bosses shoot faster
+        public float bulletSpeed = 7f;
 
         [Header("Ring / Fan")]
-        public int bulletCount = 12;
-        public float fanAngle = 60f;
+        public int bulletCount = 24;           // denser than enemies
+        public float fanAngle = 90f;
 
         [Header("Spiral")]
-        public float spiralRotateSpeed = 90f;
+        public float spiralRotateSpeed = 180f;
 
-        float nextFireTime;
-        float spiralAngle;
+        private float nextFireTime;
+        private float spiralAngle;
+        private bool isInit;
 
-        bool isInit = false;
-
+        // ─────────────────────────────
         public void Init(StageManager stageManager)
         {
             bulletPool = stageManager.enemyBulletPool;
@@ -44,18 +45,17 @@ namespace bullethell
 
         void Update()
         {
-            if (isInit)
-            {
-                if (!bulletPool || !bulletSpawn) return;
+            if (!isInit || !bulletPool || !bulletSpawn)
+                return;
 
-                if (Time.time >= nextFireTime)
-                {
-                    Fire();
-                    nextFireTime = Time.time + 1f / Mathf.Max(0.01f, fireRate);
-                }
+            if (Time.time >= nextFireTime)
+            {
+                Fire();
+                nextFireTime = Time.time + 1f / Mathf.Max(0.01f, fireRate);
             }
         }
 
+        // ─────────────────────────────
         void Fire()
         {
             switch (pattern)
@@ -88,9 +88,11 @@ namespace bullethell
 
         void ShootSingle(Vector3 dir)
         {
-            var b = bulletPool.GetEnemyBullet();
+            var b = bulletPool.GetBossBullet();
+            if (!b) return;
+
             b.transform.position = bulletSpawn.position;
-            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Enemy);
+            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Boss);
             b.gameObject.SetActive(true);
         }
 
@@ -122,7 +124,9 @@ namespace bullethell
 
         void ShootFan()
         {
-            Vector3 baseDir = playerTarget ? GetAimedDirection() : Vector3.down;
+            Vector3 baseDir = playerTarget
+                ? GetAimedDirection()
+                : Vector3.down;
 
             float startAngle = -fanAngle * 0.5f;
             float step = fanAngle / Mathf.Max(1, bulletCount - 1);
