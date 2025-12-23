@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 namespace bullethell
 {
     public class EnemyMovement : MonoBehaviour
@@ -45,6 +46,7 @@ namespace bullethell
 
         float timer;
         bool hasEntered;
+        bool movementEnabled = true; // 🔑 NEW
 
         void Start()
         {
@@ -54,6 +56,9 @@ namespace bullethell
 
         void Update()
         {
+            if (!movementEnabled)
+                return;
+
             if (!hasEntered)
                 HandleEntry();
             else
@@ -64,7 +69,6 @@ namespace bullethell
         void ComputeEnterTarget()
         {
             float camTop = mainCam.transform.position.y + mainCam.orthographicSize;
-            float camBottom = mainCam.transform.position.y - mainCam.orthographicSize;
             float camRight = mainCam.transform.position.x + mainCam.orthographicSize * mainCam.aspect;
             float camLeft = mainCam.transform.position.x - mainCam.orthographicSize * mainCam.aspect;
 
@@ -126,6 +130,23 @@ namespace bullethell
             transform.position = pos;
         }
 
-        public bool HasEntered() => hasEntered;
+        // ─────────────────────────────
+        // PUBLIC CONTROL API
+        // ─────────────────────────────
+
+        public void StopMovement()
+        {
+            movementEnabled = false;
+        }
+
+        public void StartMovement()
+        {
+            movementEnabled = true;
+        }
+
+        public bool HasEntered()
+        {
+            return hasEntered;
+        }
     }
 }

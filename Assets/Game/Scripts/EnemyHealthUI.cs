@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,15 +32,20 @@ namespace bullethell
 
         private void OnEnable()
         {
-            isVisible = false;
             canvasGroup.alpha = 0f;
-
             if (target)
             {
-                // SNAP to target immediately (no lerp yet)
                 targetPos = target.position + offset;
                 transform.position = targetPos;
             }
+
+            StartCoroutine(ShowUI());
+        }
+
+        IEnumerator ShowUI()
+        {
+            yield return new WaitForSeconds(1f);
+            canvasGroup.alpha = 1f;
         }
 
         void LateUpdate()
@@ -54,17 +60,6 @@ namespace bullethell
                 targetPos,
                 Time.deltaTime * followSmooth
             );
-
-            // Appear only when close enough (prevents screen jump)
-            if (!isVisible)
-            {
-                float dist = Vector3.Distance(transform.position, targetPos);
-                if (dist <= appearDistance)
-                {
-                    isVisible = true;
-                    canvasGroup.alpha = 1f;
-                }
-            }
 
             // Smooth fill
             if (healthFill)

@@ -11,7 +11,9 @@ namespace bullethell
         MainMenu,
         GameMenu,
         ShopMenu,
-        InventoryMenu
+        InventoryMenu,
+        LoseMenu,
+        WinMenu
     }
 
 

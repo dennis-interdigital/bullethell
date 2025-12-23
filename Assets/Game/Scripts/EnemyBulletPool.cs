@@ -16,6 +16,11 @@ namespace bullethell
         private readonly Queue<EnemyBulletScript> enemyPool = new();
         private readonly Queue<EnemyBulletScript> bossPool = new();
 
+        // 🔑 TRACK ACTIVE BULLETS
+        private readonly HashSet<EnemyBulletScript> activeEnemyBullets = new();
+        private readonly HashSet<EnemyBulletScript> activeBossBullets = new();
+
+        // ─────────────────────────────
         public void Init()
         {
             WarmPool(enemyBulletPrefab, enemyInitialSize, enemyPool);
@@ -41,12 +46,16 @@ namespace bullethell
         // ─────────────────────────────
         public EnemyBulletScript GetEnemyBullet()
         {
-            return GetFromPool(enemyBulletPrefab, enemyPool);
+            EnemyBulletScript b = GetFromPool(enemyBulletPrefab, enemyPool);
+            activeEnemyBullets.Add(b);
+            return b;
         }
 
         public EnemyBulletScript GetBossBullet()
         {
-            return GetFromPool(bossBulletPrefab, bossPool);
+            EnemyBulletScript b = GetFromPool(bossBulletPrefab, bossPool);
+            activeBossBullets.Add(b);
+            return b;
         }
 
         EnemyBulletScript GetFromPool(
@@ -65,11 +74,15 @@ namespace bullethell
         // ─────────────────────────────
         public void ReturnEnemyBullet(EnemyBulletScript b)
         {
+            if (!b) return;
+            activeEnemyBullets.Remove(b);
             ReturnToPool(b, enemyPool);
         }
 
         public void ReturnBossBullet(EnemyBulletScript b)
         {
+            if (!b) return;
+            activeBossBullets.Remove(b);
             ReturnToPool(b, bossPool);
         }
 
@@ -77,11 +90,36 @@ namespace bullethell
             EnemyBulletScript b,
             Queue<EnemyBulletScript> pool)
         {
-            if (!b) return;
-
             b.gameObject.SetActive(false);
             b.transform.SetParent(transform);
             pool.Enqueue(b);
+        }
+
+        public void ClearAllBullets()
+        {
+            // Enemy bullets
+            foreach (var b in activeEnemyBullets)
+            {
+                if (b)
+                {
+                    b.gameObject.SetActive(false);
+                    b.transform.SetParent(transform);
+                    enemyPool.Enqueue(b);
+                }
+            }
+            activeEnemyBullets.Clear();
+
+            // Boss bullets
+            foreach (var b in activeBossBullets)
+            {
+                if (b)
+                {
+                    b.gameObject.SetActive(false);
+                    b.transform.SetParent(transform);
+                    bossPool.Enqueue(b);
+                }
+            }
+            activeBossBullets.Clear();
         }
     }
 }

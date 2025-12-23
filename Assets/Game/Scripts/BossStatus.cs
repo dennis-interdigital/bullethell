@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,7 +14,9 @@ namespace bullethell
 
         [Header("Runtime")]
         [SerializeField] private float currentHealth;
-        public List<EnemyShoot> bossEnemyModules = new List<EnemyShoot>();
+        public List<EnemyShoot> bossEnemyShootModules = new List<EnemyShoot>();
+        public List<EnemyStatus> bossEnemyHealthModules = new List<EnemyStatus>();
+        public EnemyMovement bossMovement;
 
         [Header("UI Settings")]
         [SerializeField] private EnemyHealthUI healthUIPrefab;   // 🔑 ADDED
@@ -56,6 +59,7 @@ namespace bullethell
         public void Init(StageManager stageManager)
         {
             this.stageManager = stageManager;
+            bossMovement =  this.GetComponent<EnemyMovement>();
             worldCanvas = stageManager.worldCanvas;
 
             if (healthUIPrefab && worldCanvas)
@@ -143,6 +147,17 @@ namespace bullethell
             if (healthUI)
                 Destroy(healthUI.gameObject);
 
+            StartCoroutine(DeathCouroutine());
+        }
+
+        IEnumerator DeathCouroutine()
+        {
+            bossMovement.StopMovement();
+            if (VFXPool.Instance != null && !string.IsNullOrEmpty(deathVFXKey))
+            {
+                VFXPool.Instance.Spawn(deathVFXKey, transform.position);
+            }
+            yield return new WaitForSeconds(1.5f);
             Destroy(gameObject);
         }
 
@@ -191,7 +206,12 @@ namespace bullethell
 
         public void InitBossEnemyModules()
         {
-            foreach (var enemy in bossEnemyModules)
+            foreach (var enemy in bossEnemyShootModules)
+            {
+                enemy.Init(stageManager);
+            }
+
+            foreach (var enemy in bossEnemyHealthModules)
             {
                 enemy.Init(stageManager);
             }

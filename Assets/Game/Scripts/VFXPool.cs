@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 namespace bullethell
 {
     public class VFXPool : MonoBehaviour
@@ -9,22 +10,23 @@ namespace bullethell
         public class VFXEntry
         {
             public string key;
-            public ParticleSystem prefab;
+            public GameObject prefab;
             public int initialSize = 8;
+            public bool autoReturnParticle = true; // auto return if has ParticleSystem
         }
 
         public static VFXPool Instance { get; private set; }
 
         [Header("Pool Settings")]
         [SerializeField] private Transform vfxPoolParent;
-        [SerializeField] private List<VFXEntry> vfxCatalog = new List<VFXEntry>();
+        [SerializeField] private List<VFXEntry> vfxCatalog = new();
 
-        private readonly Dictionary<string, Queue<ParticleSystem>> _pools = new Dictionary<string, Queue<ParticleSystem>>();
-        private readonly Dictionary<ParticleSystem, string> _instanceKey = new Dictionary<ParticleSystem, string>();
+        private readonly Dictionary<string, Queue<GameObject>> pools = new();
+        private readonly Dictionary<GameObject, string> instanceKey = new();
 
+        // ─────────────────────────────
         private void Awake()
         {
-            // --- Singleton ---
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -32,10 +34,6 @@ namespace bullethell
             }
             Instance = this;
 
-            // Optional: uncomment if you want it to persist between scenes
-            // DontDestroyOnLoad(gameObject);
-
-            // Ensure pool parent exists
             if (vfxPoolParent == null)
             {
                 GameObject parentObj = new GameObject("[VFX Pool]");
@@ -45,83 +43,104 @@ namespace bullethell
             InitializePools();
         }
 
+        // ─────────────────────────────
         private void InitializePools()
         {
             foreach (var entry in vfxCatalog)
             {
-                if (entry.prefab == null || string.IsNullOrEmpty(entry.key)) continue;
+                if (entry.prefab == null || string.IsNullOrEmpty(entry.key))
+                    continue;
 
-                Queue<ParticleSystem> queue = new Queue<ParticleSystem>();
+                Queue<GameObject> queue = new();
 
                 for (int i = 0; i < entry.initialSize; i++)
                 {
-                    ParticleSystem ps = Instantiate(entry.prefab, vfxPoolParent);
-                    ps.gameObject.SetActive(false);
-                    _instanceKey[ps] = entry.key;
-                    queue.Enqueue(ps);
+                    GameObject obj = Instantiate(entry.prefab, vfxPoolParent);
+                    obj.SetActive(false);
+                    instanceKey[obj] = entry.key;
+                    queue.Enqueue(obj);
                 }
 
-                _pools[entry.key] = queue;
+                pools[entry.key] = queue;
             }
         }
 
+        // ─────────────────────────────
         /// <summary>
-        /// Spawn a particle effect from the pool at a given world position.
+        /// Spawn a pooled VFX GameObject at world position
         /// </summary>
-        public ParticleSystem Spawn(string key, Vector3 position)
+        public GameObject Spawn(string key, Vector3 position)
         {
-            ParticleSystem ps = GetOrCreate(key);
-            if (ps == null) return null;
+            GameObject obj = GetOrCreate(key);
+            if (!obj) return null;
 
-            ps.transform.position = position;
-            ps.transform.SetParent(null); // detach for proper play in world
-            ps.gameObject.SetActive(true);
-            ps.Clear(true);
-            ps.Play(true);
+            obj.transform.SetParent(null);
+            obj.transform.position = position;
+            obj.SetActive(true);
 
-            StartCoroutine(ReturnWhenDone(ps));
-            return ps;
+            // Auto-play particles if present
+            var ps = obj.GetComponentInChildren<ParticleSystem>();
+            if (ps)
+            {
+                ps.Clear(true);
+                ps.Play(true);
+
+                var entry = GetEntry(key);
+                if (entry != null && entry.autoReturnParticle)
+                    StartCoroutine(ReturnWhenParticleDone(obj, ps));
+            }
+
+            return obj;
         }
 
-        private ParticleSystem GetOrCreate(string key)
+        // ─────────────────────────────
+        private GameObject GetOrCreate(string key)
         {
-            if (!_pools.TryGetValue(key, out Queue<ParticleSystem> queue) || queue.Count == 0)
+            if (!pools.TryGetValue(key, out var queue) || queue.Count == 0)
             {
-                var entry = vfxCatalog.Find(e => e.key == key);
+                var entry = GetEntry(key);
                 if (entry == null || entry.prefab == null)
                 {
                     Debug.LogError($"VFXPool: No prefab found for key '{key}'.");
                     return null;
                 }
 
-                ParticleSystem newPS = Instantiate(entry.prefab, vfxPoolParent);
-                newPS.gameObject.SetActive(false);
-                _instanceKey[newPS] = entry.key;
-                return newPS;
+                GameObject obj = Instantiate(entry.prefab, vfxPoolParent);
+                obj.SetActive(false);
+                instanceKey[obj] = key;
+                return obj;
             }
 
             return queue.Dequeue();
         }
 
-        private IEnumerator ReturnWhenDone(ParticleSystem ps)
+        private VFXEntry GetEntry(string key)
         {
-            yield return new WaitWhile(() => ps.IsAlive(true));
-            Return(ps);
+            return vfxCatalog.Find(e => e.key == key);
         }
 
-        public void Return(ParticleSystem ps)
+        // ─────────────────────────────
+        IEnumerator ReturnWhenParticleDone(GameObject obj, ParticleSystem ps)
         {
-            if (ps == null) return;
+            yield return new WaitWhile(() => ps != null && ps.IsAlive(true));
+            Return(obj);
+        }
 
-            ps.gameObject.SetActive(false);
-            ps.transform.SetParent(vfxPoolParent);
+        // ─────────────────────────────
+        public void Return(GameObject obj)
+        {
+            if (!obj) return;
 
-            if (!_instanceKey.TryGetValue(ps, out string key)) return;
+            obj.SetActive(false);
+            obj.transform.SetParent(vfxPoolParent);
 
-            if (!_pools.ContainsKey(key))
-                _pools[key] = new Queue<ParticleSystem>();
+            if (!instanceKey.TryGetValue(obj, out string key))
+                return;
 
-            _pools[key].Enqueue(ps);
+            if (!pools.ContainsKey(key))
+                pools[key] = new Queue<GameObject>();
+
+            pools[key].Enqueue(obj);
         }
     }
 }

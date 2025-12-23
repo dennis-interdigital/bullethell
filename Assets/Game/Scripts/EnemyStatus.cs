@@ -1,25 +1,30 @@
 ﻿using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
+
 namespace bullethell
 {
     public class EnemyStatus : MonoBehaviour
     {
         [Header("Definition")]
-        [SerializeField] private EnemyStats stats; // ScriptableObject defining enemy data
+        [SerializeField] private EnemyStats stats;
         [Min(0.1f)] public float healthMultiplier = 1f;
 
         [Header("Runtime")]
         [SerializeField] private float currentHealth;
 
         [Header("UI Settings")]
-        [SerializeField] private EnemyHealthUI healthUIPrefab;  // Health bar prefab
+        [SerializeField] private EnemyHealthUI healthUIPrefab;
         [SerializeField] private Transform healthUITargetTransform;
-        [SerializeField] private Canvas worldCanvas;            // World-space canvas to attach to
-        private EnemyHealthUI healthUI;                         // Runtime instance
+        [SerializeField] private Canvas worldCanvas;
+        private EnemyHealthUI healthUI;
 
-        [Header("VFX Settings")]
-        [SerializeField] private string deathVFXKey = "explosion"; // VFX key in VFXPool
+        [Header("Death VFX")]
+        [SerializeField] private string deathVFXKey = "explosion";
+
+        [Header("Score VFX")]
+        [SerializeField] private string scoreVFXKey = "score";
+        [SerializeField] private int scoreValue = 10;
 
         [Header("Events")]
         public UnityEvent onDeath;
@@ -27,15 +32,11 @@ namespace bullethell
         [Header("Hit Feedback")]
         [SerializeField] private Vector3 hitPunchScale = new Vector3(0.12f, 0.12f, 0f);
         [SerializeField] private float hitPunchDuration = 0.12f;
-        [Header("Hit Rotation Feedback")]
-        [SerializeField] private float hitRotateAngle = 8f; // degrees (small!)
+        [SerializeField] private float hitRotateAngle = 8f;
 
         private Tween hitTween;
         private Vector3 originalScale;
         private Quaternion originalRotation;
-
-
-
 
         public EnemyStats Stats => stats;
         public float MaxHealth => (stats ? stats.maxHealth : 1f) * Mathf.Max(0.1f, healthMultiplier);
@@ -44,6 +45,7 @@ namespace bullethell
 
         private StageManager stageManager;
 
+        // ─────────────────────────────
         private void Awake()
         {
             originalScale = transform.localScale;
@@ -54,6 +56,7 @@ namespace bullethell
         {
             this.stageManager = stageManager;
             worldCanvas = stageManager.worldCanvas;
+
             if (healthUIPrefab && worldCanvas)
             {
                 healthUI = Instantiate(healthUIPrefab, worldCanvas.transform);
@@ -69,6 +72,7 @@ namespace bullethell
                 Destroy(healthUI.gameObject);
         }
 
+        // ─────────────────────────────
         public void ResetHealth()
         {
             currentHealth = MaxHealth;
@@ -87,7 +91,6 @@ namespace bullethell
             if (IsDead)
                 HandleDeath();
         }
-
 
         public void Heal(float amount)
         {
@@ -109,46 +112,68 @@ namespace bullethell
         public void SetStats(EnemyStats newStats, bool resetHealth = true)
         {
             stats = newStats;
-            if (resetHealth) ResetHealth(); else UpdateUI();
+            if (resetHealth) ResetHealth();
+            else UpdateUI();
         }
 
+        // ─────────────────────────────
         private void UpdateUI()
         {
             if (!healthUI) return;
-            float normalized = MaxHealth > 0f ? currentHealth / MaxHealth : 0f;
+
+            float normalized = MaxHealth > 0f
+                ? currentHealth / MaxHealth
+                : 0f;
+
             healthUI.SetHealth(normalized);
         }
 
-        private void HandleDeath()
+        // ─────────────────────────────
+        public void HandleDeath()
         {
-            // Trigger UnityEvent (if assigned)
+            // Notify spawner / listeners
             onDeath?.Invoke();
 
-            stageManager.gameController.AddBossTrigger(stats.scoreReward);
 
-            // Spawn explosion VFX via pool
+            // Explosion VFX
             if (VFXPool.Instance != null && !string.IsNullOrEmpty(deathVFXKey))
             {
                 VFXPool.Instance.Spawn(deathVFXKey, transform.position);
             }
 
-            // Destroy health bar
+            // Score fly VFX
+            if (VFXPool.Instance != null &&
+                !string.IsNullOrEmpty(scoreVFXKey) &&
+                stageManager.gameController.scoreTargetTransform != null)
+            {
+                GameObject vfxObj = VFXPool.Instance.Spawn(scoreVFXKey, transform.position);
+                var fly = vfxObj.GetComponent<ScoreVFX>();
+                if (fly != null)
+                {
+                    fly.Init(
+                        stageManager,
+                        transform.position,
+                        stageManager.gameController.scoreTargetTransform,
+                        (int)stats.scoreReward
+                    );
+                }
+            }
+
+            // Cleanup UI
             if (healthUI)
                 Destroy(healthUI.gameObject);
 
-            // Destroy enemy itself after short delay
             Destroy(gameObject);
         }
 
+        // ─────────────────────────────
         private void PlayHitFeedback()
         {
             hitTween?.Kill();
 
-            // Reset to original transform state
             transform.localScale = originalScale;
             transform.localRotation = originalRotation;
 
-            // Random small rotation direction
             Vector3 randomRot = GetRandomHitRotation();
 
             hitTween = DOTween.Sequence()
@@ -170,19 +195,17 @@ namespace bullethell
                 );
         }
 
-
         private Vector3 GetRandomHitRotation()
         {
             int dir = Random.Range(0, 4);
 
-            switch (dir)
+            return dir switch
             {
-                case 0: return new Vector3(0f, 0f, hitRotateAngle);  // right
-                case 1: return new Vector3(0f, 0f, -hitRotateAngle);  // left
-                case 2: return new Vector3(hitRotateAngle, 0f, 0f); // up
-                default: return new Vector3(-hitRotateAngle, 0f, 0f); // down
-            }
+                0 => new Vector3(0f, 0f, hitRotateAngle),
+                1 => new Vector3(0f, 0f, -hitRotateAngle),
+                2 => new Vector3(hitRotateAngle, 0f, 0f),
+                _ => new Vector3(-hitRotateAngle, 0f, 0f)
+            };
         }
-
     }
 }

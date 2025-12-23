@@ -35,17 +35,19 @@ namespace bullethell
         private float nextFireTime;
         private float spiralAngle;
         private bool isInit;
+        private bool shootingEnabled = true;   // 🔑 NEW
 
         // ─────────────────────────────
         public void Init(StageManager stageManager)
         {
             bulletPool = stageManager.enemyBulletPool;
             isInit = true;
+            nextFireTime = Time.time;
         }
 
         void Update()
         {
-            if (!isInit || !bulletPool || !bulletSpawn)
+            if (!isInit || !shootingEnabled || !bulletPool || !bulletSpawn)
                 return;
 
             if (Time.time >= nextFireTime)
@@ -155,6 +157,26 @@ namespace bullethell
         {
             float rad = angle * Mathf.Deg2Rad;
             return new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f);
+        }
+
+        // ─────────────────────────────
+        // PUBLIC CONTROL API
+        // ─────────────────────────────
+
+        public void StopShooting()
+        {
+            shootingEnabled = false;
+        }
+
+        public void StartShooting()
+        {
+            shootingEnabled = true;
+            nextFireTime = Time.time; // prevent instant burst
+        }
+
+        public bool IsShooting()
+        {
+            return shootingEnabled;
         }
     }
 }

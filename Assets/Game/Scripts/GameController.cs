@@ -12,6 +12,9 @@ namespace bullethell
         private StageManager stageManager;
         private UIManager uiManager;
 
+        [Header("Visual")]
+        public Transform scoreTargetTransform;
+
         public void Init(StageManager stageManager)
         {
             this.stageManager = stageManager;

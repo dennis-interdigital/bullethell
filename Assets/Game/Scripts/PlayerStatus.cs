@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 namespace bullethell
@@ -8,8 +9,11 @@ namespace bullethell
         [SerializeField] private float maxHealth = 100f;
         [SerializeField] private float currentHealth;
 
-        [Header("UI")]
+        [Header("Visual")]
         [SerializeField] private PlayerHealthUI healthUI;   // assign your world-space health UI
+        [SerializeField] private ParticleSystem destroyedVfx;
+        [SerializeField] private GameObject playerDestroyedVisual;
+        [SerializeField] private GameObject playerMainVisual;
 
         [Header("Events")]
         public UnityEvent onDeath;                          // optional: hook VFX/SFX/respawn
@@ -18,16 +22,21 @@ namespace bullethell
         public float CurrentHealth => currentHealth;
         public bool IsDead => currentHealth <= 0f;
 
-        void Awake()
+        public StageManager stageManager;
+
+        public void Init(StageManager stageManager)
         {
-            // If not set in inspector, try to find on children/scene
-            if (!healthUI) healthUI = GetComponentInChildren<PlayerHealthUI>();
+            this.stageManager = stageManager;
+            healthUI.gameObject.SetActive(true);
             ResetHealth();
         }
 
         /// <summary>Sets health to max and refreshes UI.</summary>
         public void ResetHealth()
         {
+            playerDestroyedVisual.SetActive(false);
+            playerMainVisual.SetActive(true);
+            healthUI.gameObject.SetActive(true);
             currentHealth = Mathf.Max(1f, maxHealth);
             UpdateUI();
         }
@@ -43,6 +52,7 @@ namespace bullethell
             if (IsDead)
             {
                 onDeath?.Invoke();
+                OnDeath();
             }
         }
 
@@ -84,6 +94,22 @@ namespace bullethell
                 float normalized = maxHealth > 0f ? currentHealth / maxHealth : 0f;
                 healthUI.SetHealth(normalized);
             }
+        }
+
+        void OnDeath()
+        {
+            playerDestroyedVisual.SetActive(true);
+            playerMainVisual.SetActive(false);
+            healthUI.gameObject.SetActive(false);
+            StartCoroutine(onDeathCouroutine());
+        }
+
+        IEnumerator onDeathCouroutine()
+        {
+            yield return new WaitForSeconds(1f);
+            destroyedVfx.Play();
+            yield return new WaitForSeconds(1f);
+            playerDestroyedVisual.SetActive(false);
         }
     }
 }

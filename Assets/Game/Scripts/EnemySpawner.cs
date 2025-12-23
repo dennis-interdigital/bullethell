@@ -12,12 +12,12 @@ namespace bullethell
         public float spawnOutsideOffset = 1.5f;
 
         [Header("Top Spawn Padding")]
-        [Tooltip("Horizontal padding so enemies don't spawn on screen edge")]
         [SerializeField] private float topSpawnHorizontalPadding = 1.2f;
 
         [Header("Boss Spawn")]
         public GameObject bossPrefab;
         public Transform bossSpawnPoint;
+        public GameObject currBossObject;
 
         [Header("Limit")]
         public int maxEnemiesOnScreen = 10;
@@ -33,10 +33,15 @@ namespace bullethell
         private Camera mainCam;
         private float timer;
         private bool isInit;
-        private bool isSpawningEnemies = true;
+
+        // 🔑 SPAWNER STATE
+        private bool spawnerEnabled = true;
         private bool bossAlive;
 
         public StageManager stageManager;
+
+        // 🔑 TRACK SPAWNED ENEMIES
+        [SerializeField] private List<GameObject> aliveEnemies = new();
 
         // ─────────────────────────────
         public void Init(StageManager stageManager)
@@ -44,11 +49,12 @@ namespace bullethell
             this.stageManager = stageManager;
             mainCam = Camera.main;
             isInit = true;
+            timer = 0f;
         }
 
         public void DoUpdate(float dt)
         {
-            if (!isInit || !isSpawningEnemies || bossAlive)
+            if (!isInit || !spawnerEnabled || bossAlive)
                 return;
 
             if (currentEnemyCount >= maxEnemiesOnScreen)
@@ -57,6 +63,7 @@ namespace bullethell
             timer += dt;
             if (timer >= spawnInterval)
             {
+                if (!spawnerEnabled) return;
                 SpawnEnemy();
                 timer = 0f;
             }
@@ -71,26 +78,24 @@ namespace bullethell
                 return;
 
             GameObject prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
-
             Vector3 worldPos = GetTopSpawnPosition();
             worldPos.z = 0f;
 
             GameObject enemy = Instantiate(prefab, worldPos, Quaternion.identity);
 
-            // Parent AFTER instantiation
             if (enemyParent)
                 enemy.transform.SetParent(enemyParent, true);
 
-            // HARD LOCK Z
             ForceZZero(enemy.transform);
 
             currentEnemyCount++;
+            aliveEnemies.Add(enemy);
 
             EnemyStatus status = enemy.GetComponent<EnemyStatus>();
             if (status)
             {
                 status.Init(stageManager);
-                status.onDeath.AddListener(OnEnemyDeath);
+                status.onDeath.AddListener(() => OnEnemyDeath(enemy));
             }
 
             EnemyShoot shoot = enemy.GetComponent<EnemyShoot>();
@@ -107,9 +112,10 @@ namespace bullethell
             }
         }
 
-        void OnEnemyDeath()
+        void OnEnemyDeath(GameObject enemy)
         {
             currentEnemyCount = Mathf.Max(0, currentEnemyCount - 1);
+            aliveEnemies.Remove(enemy);
         }
 
         #endregion
@@ -122,8 +128,8 @@ namespace bullethell
             if (bossAlive || bossPrefab == null)
                 return;
 
+            StopSpawner();
             bossAlive = true;
-            isSpawningEnemies = false;
 
             Vector3 worldPos = bossSpawnPoint
                 ? bossSpawnPoint.position
@@ -131,22 +137,21 @@ namespace bullethell
 
             worldPos.z = 0f;
 
-            GameObject boss = Instantiate(bossPrefab, worldPos, Quaternion.identity);
+            currBossObject = Instantiate(bossPrefab, worldPos, Quaternion.identity);
 
             if (enemyParent)
-                boss.transform.SetParent(enemyParent, true);
+                currBossObject.transform.SetParent(enemyParent, true);
 
-            // HARD LOCK Z
-            ForceZZero(boss.transform);
+            ForceZZero(currBossObject.transform);
 
-            BossStatus bossStatus = boss.GetComponent<BossStatus>();
+            BossStatus bossStatus = currBossObject.GetComponent<BossStatus>();
             if (bossStatus)
             {
                 bossStatus.Init(stageManager);
                 bossStatus.onDeath.AddListener(OnBossDeath);
             }
 
-            BossShoot shoot = boss.GetComponent<BossShoot>();
+            BossShoot shoot = currBossObject.GetComponent<BossShoot>();
             if (shoot)
             {
                 shoot.Init(stageManager);
@@ -156,8 +161,56 @@ namespace bullethell
         void OnBossDeath()
         {
             bossAlive = false;
-            isSpawningEnemies = true;
+            stageManager.OnWinBoss();
+        }
+
+        #endregion
+
+        // ─────────────────────────────
+        #region SPAWNER CONTROL
+
+        public void StartSpawner()
+        {
+            spawnerEnabled = true;
+            timer = 0f; // prevent instant spawn burst
+        }
+
+        public void StopSpawner()
+        {
+            spawnerEnabled = false;
+        }
+
+        public bool IsSpawnerRunning()
+        {
+            return spawnerEnabled;
+        }
+
+        #endregion
+
+        // ─────────────────────────────
+        #region RESET LOGIC
+
+        public void ResetEnemies()
+        {
+            // Destroy all alive enemies
+            for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+            {
+                if (aliveEnemies[i])
+                    Destroy(aliveEnemies[i]);
+            }
+
+            aliveEnemies.Clear();
+            currentEnemyCount = 0;
             timer = 0f;
+
+            // Destroy boss if exists
+            if (currBossObject)
+            {
+                Destroy(currBossObject);
+                currBossObject = null;
+            }
+
+            bossAlive = false;
         }
 
         #endregion
