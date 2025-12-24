@@ -47,6 +47,7 @@ namespace bullethell
         {
             playerManager.ResetPlayerState();
             enemySpawner.StartSpawner();
+            gameController.ResetGameSpeed();
             uiManager.ShowUI(UIState.GameMenu);
         }
 
@@ -54,11 +55,13 @@ namespace bullethell
         {
             playerManager.ContinuePlayerState();
             enemySpawner.StartSpawner();
+            gameController.ResetGameSpeed();
             uiManager.ShowUI(UIState.GameMenu);
         }
 
         void OnLoseGame()
         {
+            gameController.HandleGameOver();
             enemyBulletPool.ClearAllBullets();
             enemySpawner.StopSpawner();
             enemySpawner.ResetEnemies();
@@ -73,6 +76,7 @@ namespace bullethell
             enemyBulletPool.ClearAllBullets();
             enemySpawner.StopSpawner();
             enemySpawner.ResetEnemies();
+            gameController.HandleWin();
             DOVirtual.DelayedCall(3f, () =>
             {
                 playerManager.playerMovement.StopMovement();

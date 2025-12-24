@@ -54,13 +54,9 @@ namespace bullethell
                 Vector3 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
                 mousePos.z = transform.position.z;
 
-                Vector3 offset = new Vector3(
-                    followOffset.x * Mathf.Sign(mousePos.x - transform.position.x),
-                    followOffset.y * Mathf.Sign(mousePos.y - transform.position.y),
-                    0f
-                );
+                Vector3 offset = new Vector3(0f, followOffset.y, 0f);
 
-                targetPosition = ClampToScreen(mousePos - offset);
+                targetPosition = ClampToScreen(mousePos + offset);
 
                 if (activeFlameFX && !activeFlameFX.isPlaying)
                     activeFlameFX.Play();
