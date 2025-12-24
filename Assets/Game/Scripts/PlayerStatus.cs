@@ -18,8 +18,6 @@ namespace bullethell
         [Header("Events")]
         public UnityEvent onDeath;                          // optional: hook VFX/SFX/respawn
 
-        public float MaxHealth => maxHealth;
-        public float CurrentHealth => currentHealth;
         public bool IsDead => currentHealth <= 0f;
 
         public StageManager stageManager;

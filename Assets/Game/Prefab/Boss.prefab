@@ -119,7 +119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entryDirection: 0
-  enterOffsetFromEdge: 10
+  enterOffsetFromEdge: 5
   enterSpeed: 10
   enterThreshold: 0
   afterEnter: 1
@@ -302,8 +302,8 @@ Transform:
   m_GameObject: {fileID: 380444809757900462}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0.026, z: -1.8}
-  m_LocalScale: {x: 0.18170999, y: 0.18170998, z: 0.18170998}
+  m_LocalPosition: {x: 0, y: -0.337, z: -2.114}
+  m_LocalScale: {x: 0.29413396, y: 0.29413393, z: 0.29413393}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2858344113491517823}
@@ -498,7 +498,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 0, b: 0, a: 0.3254902}
+      maxColor: {r: 1, g: 0, b: 0, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -5199,8 +5199,8 @@ Transform:
   m_GameObject: {fileID: 685951613113525407}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.303, y: -0.252, z: -1.8}
-  m_LocalScale: {x: 0.18170999, y: 0.18170998, z: 0.18170998}
+  m_LocalPosition: {x: -0.542, y: -0.772, z: -1.634}
+  m_LocalScale: {x: 0.29413396, y: 0.29413393, z: 0.29413393}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2858344113491517823}
@@ -5395,7 +5395,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 0, b: 0, a: 0.3254902}
+      maxColor: {r: 1, g: 0, b: 0, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -10096,8 +10096,8 @@ Transform:
   m_GameObject: {fileID: 1569536695432627671}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.259, y: -0.252, z: -1.8}
-  m_LocalScale: {x: 0.18170999, y: 0.18170998, z: 0.18170998}
+  m_LocalPosition: {x: 0.545, y: -0.781, z: -1.683}
+  m_LocalScale: {x: 0.29413396, y: 0.29413393, z: 0.29413393}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2858344113491517823}
@@ -10292,7 +10292,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 0, b: 0, a: 0.3254902}
+      maxColor: {r: 1, g: 0, b: 0, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}

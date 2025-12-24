@@ -70,7 +70,7 @@ namespace bullethell
 
         public void OnWinBoss()
         {
-
+            enemyBulletPool.ClearAllBullets();
             enemySpawner.StopSpawner();
             enemySpawner.ResetEnemies();
             DOVirtual.DelayedCall(3f, () =>

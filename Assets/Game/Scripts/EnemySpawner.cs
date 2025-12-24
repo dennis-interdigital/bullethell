@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace bullethell
 {
@@ -18,6 +20,7 @@ namespace bullethell
         public GameObject bossPrefab;
         public Transform bossSpawnPoint;
         public GameObject currBossObject;
+        public ParticleSystem ShowBossVFX;
 
         [Header("Limit")]
         public int maxEnemiesOnScreen = 10;
@@ -130,6 +133,16 @@ namespace bullethell
 
             StopSpawner();
             bossAlive = true;
+            BossScoreDecreaseVisual();
+            StartCoroutine(ShowBossSequence());
+        }
+
+        IEnumerator ShowBossSequence()
+        {
+            yield return new WaitForSeconds(0.2f);
+            ShowBossVFX.Play();
+
+            yield return new WaitForSeconds(1.5f);
 
             Vector3 worldPos = bossSpawnPoint
                 ? bossSpawnPoint.position
@@ -156,6 +169,7 @@ namespace bullethell
             {
                 shoot.Init(stageManager);
             }
+
         }
 
         void OnBossDeath()
@@ -259,5 +273,40 @@ namespace bullethell
         }
 
         #endregion
+
+        void BossScoreDecreaseVisual()
+        {
+            Vector3 startPos = stageManager.gameController.scoreTargetTransform.position;
+            Transform endPos = bossSpawnPoint;
+
+            int spawnCount = 5;
+            float interval = 0.2f;
+
+            Sequence seq = DOTween.Sequence();
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                seq.AppendCallback(() =>
+                {
+                    GameObject vfxObj = VFXPool.Instance.Spawn(
+                        "score",
+                        stageManager.gameController.scoreTargetTransform.position
+                    );
+
+                    var fly = vfxObj.GetComponent<ScoreVFX>();
+                    if (fly != null)
+                    {
+                        fly.InitNoScore(
+                            stageManager,
+                            startPos,
+                            endPos
+                        );
+                    }
+                });
+
+                seq.AppendInterval(interval);
+            }
+        }
+
     }
 }

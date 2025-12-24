@@ -19,6 +19,7 @@ namespace bullethell
         private StageManager stageManager;
         private int scoreValue;
 
+        private bool isScore = true;
         // ─────────────────────────────
         public void Init(
             StageManager stageManager,
@@ -35,6 +36,20 @@ namespace bullethell
 
             timer = 0f;
             isFlying = true;
+            isScore = true;
+        }
+
+        public void InitNoScore(StageManager stageManager, Vector3 startWorldPos, Transform target)
+        {
+            this.stageManager = stageManager;
+            this.target = target;
+
+            startPos = startWorldPos;
+            transform.position = startWorldPos;
+
+            timer = 0f;
+            isFlying = true;
+            isScore = false;
         }
 
         void Update()
@@ -67,7 +82,7 @@ namespace bullethell
             isFlying = false;
 
             // Add score
-            stageManager.gameController.AddBossTrigger(scoreValue);
+            if(isScore) stageManager.gameController.AddBossTrigger(scoreValue);
 
             // Return to VFX pool
             gameObject.SetActive(false);
