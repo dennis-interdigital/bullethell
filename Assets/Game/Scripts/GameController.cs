@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using DG.Tweening;
 
-namespace bullethell
+namespace BulletHell
 {
     public class GameController : MonoBehaviour
     {

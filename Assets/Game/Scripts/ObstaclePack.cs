@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace bullethell
+namespace BulletHell
 {
     public class ObstaclePack : MonoBehaviour
     {

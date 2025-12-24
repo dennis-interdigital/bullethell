@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-namespace bullethell
+namespace BulletHell
 {
     public class RoadCreator : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace bullethell
+namespace BulletHell
 {
     public class GameMenuUI : BaseUI
     {

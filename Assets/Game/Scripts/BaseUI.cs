@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-namespace bullethell
+namespace BulletHell
 {
     [RequireComponent(typeof(CanvasGroup))]
     public class BaseUI : MonoBehaviour

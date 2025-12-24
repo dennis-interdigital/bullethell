@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace bullethell
+namespace BulletHell
 {
     public class PlayerMovement : MonoBehaviour
     {

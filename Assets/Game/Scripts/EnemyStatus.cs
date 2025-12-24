@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace bullethell
+namespace BulletHell
 {
     public class EnemyStatus : MonoBehaviour
     {

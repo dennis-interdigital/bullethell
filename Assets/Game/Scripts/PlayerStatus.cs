@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-namespace bullethell
+namespace BulletHell
 {
     public class PlayerStatus : MonoBehaviour
     {

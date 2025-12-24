@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace bullethell
+namespace BulletHell
 {
     public class BossStatus : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace bullethell
+namespace BulletHell
 {
     public class StageManager : MonoBehaviour
     {
@@ -12,6 +12,7 @@ namespace bullethell
         public UIManager uiManager;
         public RoadCreator roadCreator;
         public PlayerManager playerManager;
+        public PlayerPowerUp playerPower;
         public EnemySpawner enemySpawner;
         public EnemyBulletPool enemyBulletPool;
         public Canvas worldCanvas;
@@ -23,6 +24,7 @@ namespace bullethell
             uiManager.Init(this);
             uiManager.ShowUI(UIState.TitleMenu);
             playerManager.playerStatus.onDeath.AddListener(OnLoseGame);
+            playerPower.Init(this);
         }
         void FixedUpdate()
         {

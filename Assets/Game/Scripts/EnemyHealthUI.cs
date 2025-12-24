@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace bullethell
+namespace BulletHell
 {
     [RequireComponent(typeof(CanvasGroup))]
     public class EnemyHealthUI : MonoBehaviour
