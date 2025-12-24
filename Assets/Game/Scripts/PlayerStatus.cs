@@ -63,18 +63,6 @@ namespace bullethell
             UpdateUI();
         }
 
-        /// <summary>Set absolute health value (0..max).</summary>
-        public void SetHealth(float newValue)
-        {
-            currentHealth = Mathf.Clamp(newValue, 0f, maxHealth);
-            UpdateUI();
-
-            if (IsDead)
-            {
-                onDeath?.Invoke();
-            }
-        }
-
         /// <summary>Optionally update max health at runtime.</summary>
         public void SetMaxHealth(float newMax, bool keepRatio = true)
         {
