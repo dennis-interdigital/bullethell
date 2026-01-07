@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyStatsBoss
   m_EditorClassIdentifier: 
   enemyName: Boss
-  maxHealth: 800
+  maxHealth: 1000
   contactDamage: 1
   scoreReward: 0
   goldReward: 5000

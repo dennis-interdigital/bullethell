@@ -44,7 +44,8 @@ namespace BulletHell
         public void Init(
             Vector3 dir,
             float? customSpeed,
-            BulletOwner owner)
+            BulletOwner owner,
+            StageManager stageManager)
         {
             this.owner = owner;
 
@@ -59,6 +60,9 @@ namespace BulletHell
                 transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
 
             deathTime = Time.time + lifetime;
+
+            float multiplier = stageManager.gameController.currentWave / 2 * 1.05f;
+            damageMultiplier = multiplier;
         }
 
         void Update()
@@ -72,6 +76,7 @@ namespace BulletHell
         }
         public float GetDamage()
         {
+            
             return Mathf.Max(0f, (baseDamage + flatBonus) * damageMultiplier);
         }
 
@@ -110,6 +115,7 @@ namespace BulletHell
             if (player != null)
             {
                 player.TakeDamage(GetDamage());
+                Debug.Log($"PLAYER.TakeDamage: {GetDamage()}");
             }
 
             if (VFXPool.Instance != null && !string.IsNullOrEmpty(hitVFXKey))

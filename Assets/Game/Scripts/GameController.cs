@@ -9,6 +9,7 @@ namespace BulletHell
         public Transform m_SpeedParticle;
         public float bossTriggerValue = 150f;
         public float currBossTriggerValue = 0f;
+        public float currentWave = 1;
 
         [Header("Game Speed")]
         public float m_GameSpeed = 1f;              // current speed (applied)
@@ -75,11 +76,13 @@ namespace BulletHell
         public void HandleGameOver()
         {
             SetGameSpeed(0f);
+            currentWave = 1;
         }
 
         public void HandleWin()
         {
-            SetGameSpeed(5f); 
+            SetGameSpeed(5f);
+            currentWave++;
         }
 
         public void AddBossTrigger(float value)

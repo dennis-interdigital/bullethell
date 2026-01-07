@@ -51,12 +51,24 @@ namespace BulletHell
             originalScale = transform.localScale;
             originalRotation = transform.localRotation;
         }
+        public void SetBossHealthMultiplier()
+        {
+            var currWave = stageManager.gameController.currentWave;
+            if (currWave <= 1)
+            {
+                healthMultiplier = 1;
+                return;
+            }
+            healthMultiplier = currWave / 2 * 1.1f;
+            Debug.Log($"Normal Enemy - Curr Wave:{currWave}, Multiplier:{healthMultiplier}, Max Health:{MaxHealth}");
+        }
 
         public void Init(StageManager stageManager)
         {
             this.stageManager = stageManager;
             worldCanvas = stageManager.worldCanvas;
 
+            SetBossHealthMultiplier();
             if (healthUIPrefab && worldCanvas)
             {
                 healthUI = Instantiate(healthUIPrefab, worldCanvas.transform);

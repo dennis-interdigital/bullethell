@@ -37,16 +37,12 @@ namespace BulletHell
         private float timer;
         private bool isInit;
 
-        // 🔑 SPAWNER STATE
         private bool spawnerEnabled = true;
         private bool bossAlive;
 
         public StageManager stageManager;
-
-        // 🔑 TRACK SPAWNED ENEMIES
         [SerializeField] private List<GameObject> aliveEnemies = new();
 
-        // ─────────────────────────────
         public void Init(StageManager stageManager)
         {
             this.stageManager = stageManager;
@@ -72,8 +68,7 @@ namespace BulletHell
             }
         }
 
-        // ─────────────────────────────
-        #region ENEMY SPAWN (TOP ONLY)
+        #region ENEMY SPAWN
 
         void SpawnEnemy()
         {
@@ -123,7 +118,6 @@ namespace BulletHell
 
         #endregion
 
-        // ─────────────────────────────
         #region BOSS LOGIC
 
         public void SpawnBoss()
@@ -201,7 +195,6 @@ namespace BulletHell
 
         #endregion
 
-        // ─────────────────────────────
         #region RESET LOGIC
 
         public void ResetEnemies()
@@ -228,8 +221,6 @@ namespace BulletHell
         }
 
         #endregion
-
-        // ─────────────────────────────
         #region HELPERS
 
         Vector3 GetTopSpawnPosition()

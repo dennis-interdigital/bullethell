@@ -22,11 +22,11 @@ namespace BulletHell
         public BulletPattern pattern = BulletPattern.Ring;
 
         [Header("Firing")]
-        public float fireRate = 3f;           // bosses shoot faster
+        public float fireRate = 3f;          
         public float bulletSpeed = 7f;
 
         [Header("Ring / Fan")]
-        public int bulletCount = 24;           // denser than enemies
+        public int bulletCount = 24;       
         public float fanAngle = 90f;
 
         [Header("Spiral")]
@@ -35,11 +35,12 @@ namespace BulletHell
         private float nextFireTime;
         private float spiralAngle;
         private bool isInit;
-        private bool shootingEnabled = true;   // 🔑 NEW
+        private bool shootingEnabled = true;   
+        StageManager stageManager;
 
-        // ─────────────────────────────
         public void Init(StageManager stageManager)
         {
+            this.stageManager = stageManager;   
             bulletPool = stageManager.enemyBulletPool;
             isInit = true;
             nextFireTime = Time.time;
@@ -94,7 +95,7 @@ namespace BulletHell
             if (!b) return;
 
             b.transform.position = bulletSpawn.position;
-            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Boss);
+            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Boss, stageManager);
             b.gameObject.SetActive(true);
         }
 

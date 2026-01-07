@@ -36,8 +36,11 @@ namespace BulletHell
 
         bool isInit = false;
 
+        StageManager stageManager;
+
         public void Init(StageManager stageManager)
         {
+            this.stageManager = stageManager;
             bulletPool = stageManager.enemyBulletPool;
             isInit = true;
         }
@@ -82,15 +85,12 @@ namespace BulletHell
             }
         }
 
-        // ─────────────────────────────
-        // PATTERNS
-        // ─────────────────────────────
 
         void ShootSingle(Vector3 dir)
         {
             var b = bulletPool.GetEnemyBullet();
             b.transform.position = bulletSpawn.position;
-            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Enemy);
+            b.Init(dir.normalized, bulletSpeed, EnemyBulletScript.BulletOwner.Enemy, stageManager);
             b.gameObject.SetActive(true);
         }
 
